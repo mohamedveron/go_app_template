@@ -5,13 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"sync"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/pkg/errors"
-	"net/http"
-	"sync"
-	"time"
 
 	"github.com/mohamedveron/go_app_template/internal/api"
 )

@@ -2,10 +2,11 @@ package users
 
 import (
 	"context"
-	"github.com/mohamedveron/go_app_template/internal/pkg/logger"
-	"github.com/pkg/errors"
 	"strings"
 	"time"
+
+	"github.com/mohamedveron/go_app_template/internal/pkg/logger"
+	"github.com/pkg/errors"
 )
 
 // User holds all data required to represent a user
@@ -112,9 +113,8 @@ func (us *Users) ReadByEmail(ctx context.Context, email string) (*User, error) {
 	if err != nil {
 		// in case of error while storing in cache, it is only logged
 		// This behaviour as well as read-through cache behaviour depends on your business logic.
-		_ = us.logHandler.Error(err.Error())
+		us.logHandler.Error(err.Error())
 	}
-
 	return u, nil
 }
 
