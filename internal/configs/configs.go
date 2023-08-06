@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -12,6 +13,22 @@ import (
 
 // Configs struct handles all dependencies required for handling configurations
 type Configs struct {
+	AppName              string `yaml:"appName" env:"APP_NAME" envDefault:"dsp"`
+	Version              string `yaml:"version" env:"APP_VERSION" envDefault:"v0.0.0"`
+	ServiceAccountBase64 string `yaml:"serviceAccountBase64" env:"SERVICE_ACCOUNT_BASE64"`
+	Environment          string `yaml:"goenv" env:"GOENV"`
+
+	MongoDB struct {
+		URI                    string        `env:"CONNECTION_STRING"`
+		PingTimeout            time.Duration `env:"PING_TIMEOUT" envDefault:"3s"`
+		ConnectTimeout         time.Duration `env:"CONNECT_TIMEOUT" envDefault:"5s"`
+		HeartbeatInterval      time.Duration `env:"HEARTBEAT_INTERVAL" envDefault:"10s"`
+		LocalThreshold         time.Duration `env:"LOCAL_THRESHOLD" envDefault:"15ms"`
+		MaxConnIdleTime        time.Duration `env:"MAX_CONN_IDLE_TIME" envDefault:"60s"`
+		MaxPoolSize            uint64        `env:"MAX_POOL_SIZE" envDefault:"100"`
+		MinPoolSize            uint64        `env:"MIN_POOL_SIZE" envDefault:"1"`
+		ServerSelectionTimeout time.Duration `env:"SERVER_SELECTION_TIMEOUT" envDefault:"30s"`
+	}
 }
 
 // HTTP returns the configuration required for HTTP package
@@ -53,6 +70,10 @@ func (cfg *Configs) Datastore() (*datastore.Config, error) {
 		IdleTimeout:  time.Second * 60,
 		DialTimeout:  time.Second * 10,
 	}, nil
+}
+
+func (cfg *Configs) AppFullname() string {
+	return fmt.Sprintf("%s%s", cfg.AppName, cfg.Version)
 }
 
 // New returns an instance of Config with all the required dependencies initialized
