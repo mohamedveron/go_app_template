@@ -23,8 +23,8 @@ test: generate
 	go test -v ./test
 
 run:
-	@echo :: start http server at port 50051
-	go run main.go
+	@echo :: start http server at port 9090
+	go run ./cmd/main.go
 
 all: generate build test run
 

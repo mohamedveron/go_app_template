@@ -1,9 +1,12 @@
 package configs
 
 import (
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/mohamedveron/go_app_template/internal/pkg/datastore"
+	"github.com/mohamedveron/go_app_template/internal/pkg/logger"
 	"github.com/mohamedveron/go_app_template/internal/server/http"
 )
 
@@ -13,8 +16,18 @@ type Configs struct {
 
 // HTTP returns the configuration required for HTTP package
 func (cfg *Configs) HTTP() (*http.Config, error) {
+	envPort := os.Getenv("PORT")
+	if envPort == "" {
+		envPort = "9090"
+	}
+
+	port, err := strconv.Atoi(envPort)
+	if err != nil {
+		logger.Error("wrong port provided", envPort)
+	}
+
 	return &http.Config{
-		Port:         9090,
+		Port:         port,
 		ReadTimeout:  time.Second * 5,
 		WriteTimeout: time.Second * 5,
 		//DialTimeout:       time.Second * 3,

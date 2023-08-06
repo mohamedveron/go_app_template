@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mohamedveron/go_app_template/internal/api"
+	"github.com/mohamedveron/go_app_template/internal/pkg/logger"
 )
 
 const (
@@ -159,10 +160,12 @@ func New(apis *api.API, cfg *Config) *HTTP {
 			},
 		),
 	)
+	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	logger.Info("address of the app= ", address)
 	//HandlerFromMux(ht, v1Router)
 	//router.Mount("/api/v1", v1Router)
 	ht.server = &http.Server{
-		Addr:              fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Addr:              address,
 		Handler:           router,
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 		ReadTimeout:       cfg.ReadTimeout,
