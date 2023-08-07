@@ -16,7 +16,7 @@ type User struct {
 	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 }
 
-func (u *User) setDefaults() {
+func (u *User) SetDefaults() {
 	now := time.Now()
 	if u.CreatedAt == nil {
 		u.CreatedAt = &now
@@ -41,7 +41,7 @@ func (u *User) Validate() error {
 		return nil
 	}
 
-	err := validateEmail(u.Email)
+	err := u.ValidateEmail(u.Email)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (u *User) Validate() error {
 	return nil
 }
 
-func validateEmail(email string) error {
+func (u *User) ValidateEmail(email string) error {
 	parts := strings.Split(email, "@")
 	if len(parts) != 2 {
 		return errors.New("invalid email address provided")

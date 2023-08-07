@@ -9,6 +9,7 @@ import (
 	"github.com/mohamedveron/go_app_template/internal/pkg/logger"
 	"github.com/mohamedveron/go_app_template/internal/server/http"
 	"github.com/mohamedveron/go_app_template/internal/users"
+	"github.com/mohamedveron/go_app_template/internal/users/persistence"
 )
 
 func main() {
@@ -26,12 +27,12 @@ func main() {
 		return
 	}
 
-	pqdriver, err := datastore.NewService(dscfg)
+	pqdriver, err := datastore.NewPostgresService(dscfg)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("%+v", err))
 		return
 	}
-	userStore, err := users.NewStore(pqdriver)
+	userStore, err := persistence.NewUserPostgresPersistence(pqdriver)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("%+v", err))
 		return

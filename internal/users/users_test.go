@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mohamedveron/go_app_template/internal/users/domain"
 )
 
 func TestUser_Sanitize(t *testing.T) {
@@ -41,7 +43,7 @@ func TestUser_Sanitize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u := &User{
+			u := &domain.User{
 				FirstName: tt.fields.FirstName,
 				LastName:  tt.fields.LastName,
 				Mobile:    tt.fields.Mobile,
@@ -51,7 +53,7 @@ func TestUser_Sanitize(t *testing.T) {
 			}
 			u.Sanitize()
 
-			trimmed := &User{
+			trimmed := &domain.User{
 				FirstName: strings.TrimSpace(u.FirstName),
 				LastName:  strings.TrimSpace(u.LastName),
 				Mobile:    strings.TrimSpace(u.Mobile),
@@ -102,7 +104,7 @@ func TestUser_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u := &User{
+			u := &domain.User{
 				FirstName: tt.fields.FirstName,
 				LastName:  tt.fields.LastName,
 				Mobile:    tt.fields.Mobile,
