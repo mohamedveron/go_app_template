@@ -10,6 +10,7 @@ import (
 	"github.com/mohamedveron/go_app_template/internal/server/http"
 	"github.com/mohamedveron/go_app_template/internal/users"
 	"github.com/mohamedveron/go_app_template/internal/users/persistence"
+	"github.com/mohamedveron/go_app_template/proxy"
 )
 
 func main() {
@@ -55,6 +56,7 @@ func main() {
 		return
 	}
 
+	proxy.PrintModels()
 	server := http.New(a, httpCfg)
 	server.Start()
 
