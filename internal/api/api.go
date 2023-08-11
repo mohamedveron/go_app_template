@@ -12,7 +12,7 @@ var (
 
 // API holds all the dependencies required to expose APIs. And each API is a function with *API as its receiver
 type API struct {
-	users *users.Users
+	users *users.UsersService
 }
 
 // Health returns the health of the app along with other info like version
@@ -29,7 +29,7 @@ func (a *API) Health() (map[string]interface{}, error) {
 }
 
 // NewService returns a new instance of API with all the dependencies initialized
-func NewService(us *users.Users) (*API, error) {
+func NewService(us *users.UsersService) (*API, error) {
 	return &API{
 		users: us,
 	}, nil
