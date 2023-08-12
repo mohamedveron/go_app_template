@@ -13,7 +13,7 @@ generate:
 	swagger-cli bundle $(SOURCE)/cmd/server/contracts/api-specs.yaml --type yaml --outfile $(SOURCE)/cmd/server/contracts/api-bundled.yaml
 	@echo "Generating bundled open api golang"
 	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
-	@oapi-codegen --config $(SOURCE)/cmd/server/contracts/cfg.yaml -o $(SOURCE)/go-services/$(SERVICE)/cmd/server/http $(SOURCE)/cmd/dsp-server/contracts/api-bundled.yaml
+	@oapi-codegen --config $(SOURCE)/cmd/server/contracts/cfg.yaml -o $(SOURCE)/go-services/$(SERVICE)/cmd/server/http $(SOURCE)/cmd/server/contracts/api-bundled.yaml
 
 
 build:  $(OUTPUT)
