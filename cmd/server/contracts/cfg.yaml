@@ -1,0 +1,8 @@
+package: http
+generate:
+  chi-server: true
+  models: true
+  embedded-spec: true
+compatibility:
+  apply-chi-middleware-first-to-last: true
+output: cmd/server/http/spec.gen.go
