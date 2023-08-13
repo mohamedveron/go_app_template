@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mohamedveron/go_app_template/cmd/server/http"
 	"github.com/mohamedveron/go_app_template/internal/pkg/datastore"
 	"github.com/mohamedveron/go_app_template/internal/pkg/logger"
-	"github.com/mohamedveron/go_app_template/internal/server/http"
 )
 
 // Configs struct handles all dependencies required for handling configurations

@@ -12,10 +12,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/pkg/errors"
-
 	"github.com/mohamedveron/go_app_template/internal/api"
 	"github.com/mohamedveron/go_app_template/internal/pkg/logger"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -43,11 +42,6 @@ type HTTP struct {
 	serverStartTime           time.Time
 	liveHealthResponse        map[string]string
 	shutdownInitiatedResponse []byte
-}
-
-func (ht *HTTP) Error() string {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (ht *HTTP) Start() error {
@@ -94,12 +88,13 @@ func (ht *HTTP) HandleError(w http.ResponseWriter, err error) {
 	if err == nil {
 		return
 	}
-	/*status, message, _ := errors.Wrap(err).HTTPStatusCodeMessage(err)
+	/*status, message, _ := HTTPStatusCodeMessage(err)
 
 	response := Error{
 		Code:    int32(status),
 		Message: message,
 	}*/
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 	_ = json.NewEncoder(w).Encode(err)
@@ -162,8 +157,8 @@ func New(apis *api.API, cfg *Config) *HTTP {
 	)
 	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	logger.Info("address of the app= ", address)
-	//HandlerFromMux(ht, v1Router)
-	//router.Mount("/api/v1", v1Router)
+	HandlerFromMux(ht, v1Router)
+	router.Mount("/api/v1", v1Router)
 	ht.server = &http.Server{
 		Addr:              address,
 		Handler:           router,

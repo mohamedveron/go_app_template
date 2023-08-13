@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 
+	"github.com/mohamedveron/go_app_template/cmd/server/http"
 	"github.com/mohamedveron/go_app_template/internal/api"
 	"github.com/mohamedveron/go_app_template/internal/configs"
 	"github.com/mohamedveron/go_app_template/internal/pkg/datastore"
 	"github.com/mohamedveron/go_app_template/internal/pkg/logger"
-	"github.com/mohamedveron/go_app_template/internal/server/http"
 	"github.com/mohamedveron/go_app_template/internal/users"
 	"github.com/mohamedveron/go_app_template/internal/users/persistence"
 )
