@@ -1,85 +1,64 @@
 openapi: "3.0.0"
 info:
   version: 1.0.0
-  title: Swagger Petstore
-  description: A sample API that uses a petstore as an example to demonstrate features in the OpenAPI 3.0 specification
+  title: Swagger Userstore
+  description: A sample API that uses a User as an example to demonstrate features in the OpenAPI 3.0 specification
   termsOfService: https://swagger.io/terms/
   contact:
-    name: Swagger API Team
+    name: Firstwordai API Team
     email: apiteam@swagger.io
     url: https://swagger.io
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
 servers:
-  - url: https://petstore.swagger.io/api
+  - url: https://Users.swagger.io/api
 paths:
-  /pets:
+  /users:
     post:
-      summary: Creates a new pet
-      description: Creates a new pet in the store. Duplicates are allowed
-      operationId: addPet
+      summary: Creates a new user
+      description: Creates a new user
+      operationId: addUser
       requestBody:
-        description: Pet to add to the store
+        description: User to add to the store
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewPet'
+              $ref: '#/components/schemas/NewUser'
       responses:
         '200':
-          description: pet response
+          description: user response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pet'
+                $ref: '#/components/schemas/User'
         default:
           description: unexpected error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /pets/{id}:
+  /users/{id}:
     get:
-      summary: Returns a pet by ID
-      description: Returns a pet based on a single ID
-      operationId: findPetByID
+      summary: Returns a User by ID
+      description: Returns a User based on a single ID
+      operationId: findUserByID
       parameters:
         - name: id
           in: path
-          description: ID of pet to fetch
+          description: ID of User to fetch
           required: true
           schema:
             type: integer
             format: int64
       responses:
         '200':
-          description: pet response
+          description: User response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pet'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-    delete:
-      summary: Deletes a pet by ID
-      description: deletes a single pet based on the ID supplied
-      operationId: deletePet
-      parameters:
-        - name: id
-          in: path
-          description: ID of pet to delete
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '204':
-          description: pet deleted
+                $ref: '#/components/schemas/User'
         default:
           description: unexpected error
           content:
@@ -88,27 +67,27 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    Pet:
+    User:
       allOf:
-        - $ref: '#/components/schemas/NewPet'
+        - $ref: '#/components/schemas/NewUser'
         - required:
             - id
           properties:
             id:
               type: integer
               format: int64
-              description: Unique id of the pet
+              description: Unique id of the User
 
-    NewPet:
+    NewUser:
       required:
         - name
       properties:
         name:
           type: string
-          description: Name of the pet
-        tag:
+          description: Name of the user
+        email:
           type: string
-          description: Type of the pet
+          description: Email of the User
 
     Error:
       required:

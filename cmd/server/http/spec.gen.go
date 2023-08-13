@@ -27,62 +27,53 @@ type Error struct {
 	Message string `json:"message"`
 }
 
-// NewPet defines model for NewPet.
-type NewPet struct {
-	// Name Name of the pet
-	Name string `json:"name"`
+// NewUser defines model for NewUser.
+type NewUser struct {
+	// Email Email of the User
+	Email *string `json:"email,omitempty"`
 
-	// Tag Type of the pet
-	Tag *string `json:"tag,omitempty"`
+	// Name Name of the user
+	Name string `json:"name"`
 }
 
-// Pet defines model for Pet.
-type Pet struct {
-	// Id Unique id of the pet
+// User defines model for User.
+type User struct {
+	// Email Email of the User
+	Email *string `json:"email,omitempty"`
+
+	// Id Unique id of the User
 	Id int64 `json:"id"`
 
-	// Name Name of the pet
+	// Name Name of the user
 	Name string `json:"name"`
-
-	// Tag Type of the pet
-	Tag *string `json:"tag,omitempty"`
 }
 
-// AddPetJSONRequestBody defines body for AddPet for application/json ContentType.
-type AddPetJSONRequestBody = NewPet
+// AddUserJSONRequestBody defines body for AddUser for application/json ContentType.
+type AddUserJSONRequestBody = NewUser
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Creates a new pet
-	// (POST /pets)
-	AddPet(w http.ResponseWriter, r *http.Request)
-	// Deletes a pet by ID
-	// (DELETE /pets/{id})
-	DeletePet(w http.ResponseWriter, r *http.Request, id int64)
-	// Returns a pet by ID
-	// (GET /pets/{id})
-	FindPetByID(w http.ResponseWriter, r *http.Request, id int64)
+	// Creates a new user
+	// (POST /users)
+	AddUser(w http.ResponseWriter, r *http.Request)
+	// Returns a User by ID
+	// (GET /users/{id})
+	FindUserByID(w http.ResponseWriter, r *http.Request, id int64)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
 
-// Creates a new pet
-// (POST /pets)
-func (_ Unimplemented) AddPet(w http.ResponseWriter, r *http.Request) {
+// Creates a new user
+// (POST /users)
+func (_ Unimplemented) AddUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Deletes a pet by ID
-// (DELETE /pets/{id})
-func (_ Unimplemented) DeletePet(w http.ResponseWriter, r *http.Request, id int64) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Returns a pet by ID
-// (GET /pets/{id})
-func (_ Unimplemented) FindPetByID(w http.ResponseWriter, r *http.Request, id int64) {
+// Returns a User by ID
+// (GET /users/{id})
+func (_ Unimplemented) FindUserByID(w http.ResponseWriter, r *http.Request, id int64) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -95,12 +86,12 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
-// AddPet operation middleware
-func (siw *ServerInterfaceWrapper) AddPet(w http.ResponseWriter, r *http.Request) {
+// AddUser operation middleware
+func (siw *ServerInterfaceWrapper) AddUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AddPet(w, r)
+		siw.Handler.AddUser(w, r)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -110,8 +101,8 @@ func (siw *ServerInterfaceWrapper) AddPet(w http.ResponseWriter, r *http.Request
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// DeletePet operation middleware
-func (siw *ServerInterfaceWrapper) DeletePet(w http.ResponseWriter, r *http.Request) {
+// FindUserByID operation middleware
+func (siw *ServerInterfaceWrapper) FindUserByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -126,33 +117,7 @@ func (siw *ServerInterfaceWrapper) DeletePet(w http.ResponseWriter, r *http.Requ
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeletePet(w, r, id)
-	}))
-
-	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
-		handler = siw.HandlerMiddlewares[i](handler)
-	}
-
-	handler.ServeHTTP(w, r.WithContext(ctx))
-}
-
-// FindPetByID operation middleware
-func (siw *ServerInterfaceWrapper) FindPetByID(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "id" -------------
-	var id int64
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, chi.URLParam(r, "id"), &id)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.FindPetByID(w, r, id)
+		siw.Handler.FindUserByID(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -276,13 +241,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/pets", wrapper.AddPet)
+		r.Post(options.BaseURL+"/users", wrapper.AddUser)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/pets/{id}", wrapper.DeletePet)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/pets/{id}", wrapper.FindPetByID)
+		r.Get(options.BaseURL+"/users/{id}", wrapper.FindUserByID)
 	})
 
 	return r
@@ -291,20 +253,19 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+RVwW7jNhD9FWLaoyq5yaIHnZpdp4CBIjGa7Wnhw1QcSSwkkkuO4jUM/XtBUnIcy9vu",
-	"ISgK9GSZnOG8ee9xeITK9NZo0uyhPIKvWuoxft47Z1z4sM5YcqwoLldGUviV5CunLCujoUzBIu5lUBvX",
-	"I0MJSvPtDWTAB0vpLzXkYMygJ++x+epB8/Yp1bNTuoFxzMDR50E5klB+gqngHL4bM3ig/ZZ4iVtjf6Xc",
-	"A/YkTC24JWGJlwUzYGyWeR8P9u/zLoDG6gHehA277rGG8tMRvndUQwnfFS9CFJMKxdTLmF02o+QS0u9a",
-	"fR5IKPka17kYP727IsYFUiVhN+7GsKx0bZLkmrGKuKlH1UEJaBUT9j/7PTYNuVwZyCaK4SmtibvtRnwk",
-	"7CGDwYWkltn6sijOksbsoos74bG3HcVsbpHF4MkLDN14No4EeoFa0JcUxkZI6o327JBJ1IQ8OPJC6cjB",
-	"oyUdTrrNV8JbqlStKoylMuhURdrTizngzmLVkrjJVwvM+/0+x7idG9cUU64vft18uH94uv/hJl/lLfdd",
-	"dAy53j/WT+SeVUVXGy9iTBHkUNyds7ad+oQMnsn5xMqP+SpfhaONJY1WQQm3cSkDi9xGTxSBoeh743lp",
-	"jw+OkCOTmvaBzZmiWC0X68F2gZsQEljuOrMnCbGki5RtZKBIym30VfAMeX5v5GH2COnkbZtOUkYXf/pQ",
-	"fJ4r4etb/D4ubLElDlKjlOHnBBvOvctuoGhmb03QJlS7Wa3eDN1XoAUq55rJzzUOHb9Z2TSHrxQeNH2x",
-	"VDFJQVNMBn7oe3SHa4LH/eiS4qjkmCzSEV8Zi2k95Hqlmy7OEvEHepLCJNds1sIPoacrHlnH7GQTiw57",
-	"YnI+TrvXZTbrMKts0nbCEsZOYBW5fRkpSi6Uzs7o++cZt1v44t2y6wAkoZD/JSHXJzGiCgexWQd4DV25",
-	"5b8RD06fYmfFTjpu1gu1flE6XOn3h7j37XrVxFX7r8n1v73GF4om9WMIuedZptdv1fxU5mfvTXg0xt34",
-	"VwAAAP//odsR6PAJAAA=",
+	"H4sIAAAAAAAC/8xUTW/jNhD9K8S0R1VynaIHnZpPwECRFM3mFPgwK44kLsSPkKM4hqH/viBlJV5bwe4h",
+	"wO5JNDkfb957nh1UVjtryHCAcgehakljOl57b308OG8deVaUrisrKX4lhcorx8oaKMdgkd4yqK3XyFCC",
+	"Mny2hAx462j8SQ15GDLQFAI27xaanl9TA3tlGhiGDDw99cqThPIR9g2n8PWQwS1tHgLNACeNqptpGK+F",
+	"rQW3JFLmSdMMDOoZrLeoacrsZzOP4KYyEeSEELvurobycQe/e6qhhN+KNz2KvRjFNNKQHc+k5CmqB6Oe",
+	"ehJKHg11qMrff82ocgRWSVgP6yFeK1PbUXvDWPEBm4BOMaH+J2ywacjnysJEF9woH3hjvUQlzv9biU+E",
+	"GjLofUxsmV0oi+IgcciORjkXAbXrKGVzixxpDgLTSAKDQCPoZQxhKyRpawJ7ZBI1IfeeglAmkXDnyMQq",
+	"Z/lCBEeVqlWFqU0GnarIhCTwHvm5w6olscwXJ3g3m02O6Tm3vin2uaH4d3V5fXt//ccyX+Qt6y5Ow+R1",
+	"uKvvyT+rimaHLlJMEeVQ3MWY+/EtzRjY+mjwZ/JhpOTPfJEvYm3ryKBTUMJZusrAIbfJFUU0Yzo5G/jU",
+	"IZeekBOPhjaTc6OtEiErGQmQcm+baAkKfGHldrIAmVQUnev2JBZfQqw87Y94+iFDDyeSJ2XZCpQyfqJ0",
+	"Ewlv5mTfU3JrcDaSH/stF4sPw/ceuEiVmLqOdq2x7/jDGo87d66zoRdHFZMUtI/JIPRao9/OKxoDRiMU",
+	"OyWH2LmhGTP8T9x78/qn+oyBpLBGoAjKNB2J1dWJO26USfa42KZHhx41cfLc43H91VXcQ5OsNXHVQtwo",
+	"UCbDvm0LJU80zg5o+/76Wv8ERzz8qo44lnUbdUxlAvnnSapvV1vaOPnBbor7ZVgPXwMAAP//iZ8KGiUI",
+	"AAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
