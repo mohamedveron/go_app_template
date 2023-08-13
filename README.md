@@ -1,7 +1,7 @@
 # go_app_template
 This is a basic template to start a new golang application based on clean architecture 
 
-## Setup of the component:
+## Setup of the service:
 
 Must have golang installed version >= 1.18
 
