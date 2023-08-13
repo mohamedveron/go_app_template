@@ -28,13 +28,6 @@ Start the http server on port 9090:
  docker run -p 9090:9090 go_app
  
 ```
-<p align="center"><img src="https://user-images.githubusercontent.com/1092882/86512217-bfd5a480-be1d-11ea-976c-a7c0ac0cd1f1.png" alt="goapp gopher" width="256px"/></p>
-
-
-P.S: This guideline is not directly applicable for an independent package, as their primary use is to be consumed in other applications. In such cases, having most or all of the package code in the root is probably the best way of doing it. And that is where Go's recommendation of "no unnecessary sub packages" shines.
-
-In my effort to try and make things easier to understand, the structure is explained based on a note taking web application (with hardly any features implemented 🤭).
-
 ## Table of contents
 
 1. [Directory structure](#directory-structure)
@@ -152,34 +145,12 @@ pkg package contains all the packages which are to be consumed across multiple p
 
 ### internal/pkg/datastore
 
-The datastore package initializes `pgxpool.Pool` and returns a new instance. I'm using Postgres as the datastore in this sample app. Why create such a package? I for instance had to because the packages we are using for Postgres did not have readymade APM integration. So started off by writing methods which we use in the app (and not 100% mirroring of the library), with APM integration. Did the same for cachestore as well. And it gets us beautiful insights like the following:
-
-<p align="center">
-<img src="https://user-images.githubusercontent.com/1092882/86710556-baa07180-c038-11ea-8924-3b4d61db1476.png" alt="APM overall" width="384px" height="256px" style="margin-right: 16px" />
-<img src="https://user-images.githubusercontent.com/1092882/86710547-b83e1780-c038-11ea-9829-b5585b3d599b.png" alt="APM 1 API" width="384px" height="256px" />
-</p>
-
+The datastore package initializes `pgxpool.Pool` and returns a new instance. I'm using Postgres as the datastore in this sample app.
 P.S: Similar to logger, we made these independent private packages hosted in our [VCS](https://en.wikipedia.org/wiki/Version_control). Shoutout to [Gitlab](https://gitlab.com/)!
 
 ### internal/pkg/logger
 
 I usually define the logging interface as well as the package, in a private repository (internal to your company e.g. vcs.yourcompany.io/gopkgs/logger), and is used across all services. Logging interface helps you to easily switch between different logging libraries, as all your apps would be using the interface **you** defined (interface segregation principle from SOLID). But here I'm making it part of the application itself as it has fewer chances of going wrong when trying to cater to a larger audience.
-
-**Logging might sound trivial but there are a few questions around it:**
-
-1. Should it be made a dependency of all packages, or can it be global?
-
-Logging just like any other dependency, is a dependency. And in most cases it's better to write packages (code in general) which have as few dependencies as practically possible. This is a general principle, fewer dependencies make a lot of things easier like maintainability, testing, porting, refactoring, etc. And creating singleton Globals bring in restrictions, also it's a dependency nevertheless. Global instances have another issue, it doesn't give you flexibility when you need varying functionality across different packages (since it's global, it's common for all consumers). E.g. in one package you'd like to have debug logs, and in the other you'd only want errors. So in my opinion, it's better not to use a global instance, but have global functions which implement the default behaviour for all your packages which do not have any custom requirements.
-
-2. Where would you do it? Should you bubble up errors and log at the parent level, or write where the error occurs?
-
-Keeping it at the root/outermost layer helps make things easier because you need to worry about injecting logging dependency only in this package. And easier to controls it in general. i.e. One less thing to worry about in majority of the code.
-
-For developers, while troubleshooting (which is one of the foremost need for logging), the line number along with filename helps a lot. Then it's obvious, log where the error occurs, right?
-
-Over the course of time, I found it's not really obvious. The more nested function calls you have, higher the chances of redundant logging. And setting up guidelines for your developers to only log at the origin of error is also not easy. A lot of developers get confused which level should be considered the origin (especially when there's deep nesting fn1 -> fn2 -> fn3 -> fn4). Thus I prefer logging at the Handlers layer, [with annotated errors](https://pkg.go.dev/errors)(using the '%w' verb in `fmt.Errorf`) to trace its origin. Recently I introduced a [minimal error handling package](https://github.com/bnkamalesh/errors/) which gives long file path, line number of the origin of error, stacktrace etc. as well as help set user friendly messages for API response. My earlier recommendation was to use API package for logging, but in the past 2+ years (> 2019), figured out that it's better/easier to handle in the handler layer. Now all the HTTP handlers return an error, and there's a wrapper to handle the logging (this is updated in the app as well) as well as responding to the HTTP request.
-
-Though there are some exceptions to logging at the outer most layer alone, consider the case of `internal/users` package. I'm making use of cache, but it's a read-through cache. So even if there's a miss in cache or cache store is down altogether, the system should still work (a specific business logic). But then how do you find out if your cache is down when there are no logs? Hence you see the logger being made a dependency of users package. This would apply to any asynchronous behaviours as well, e.g. a queue subscriber
 
 ## internal/server/http
 
@@ -188,10 +159,6 @@ All HTTP related configurations and functionalities are kept inside this package
 e.g. handlers_users.go. The advantage of naming this way is, it's easier for developers to look at and identify from a list of filenames. e.g. on VS code it looks like this
 
 <p align="center"><img src="https://user-images.githubusercontent.com/1092882/86526182-24d8db00-beae-11ea-9681-0a31b2d67e1b.png" alt="handlers_users.go" width="512px"/></p>
-
-### internal/server/http/web/templates
-
-All HTML templates required for the application are to be put here. Sub directories based on the main business logic unit, e.g. we/templates/users, can be created if required. It is highly unlikely that HTML templates used for HTTP responses are reused elsewhere in the application. Hence it justifies its location within 'server/http'. Other static files shall also be made part of the `web` directory like `web/static/images`, `web/static/js` etc. Feel free to [embed](https://pkg.go.dev/embed) templates, static files etc.
 
 ## lib
 
@@ -202,21 +169,13 @@ It might seem redundant to add a sub-directory called 'goapp', the import path w
 Another advantage is, if you have more than one package which you'd like to be made available for external consumption, you create `lib/<other>`. In this case, you reduce the dependencies which are imported to external functions. On the contrary if you put everything inside `lib` or in a single package, you'd be forcing import of all dependencies even when you'd need only a small part of it.
 
 ## docker
-
-I've been a fan of Docker since a few years now. I like keeping a dedicated folder for Dockerfile, in anticipation of introducing multiple Docker files or maintaining other files required for Docker image build.
-
-e.g. [Dockerfiles for Alpine & Debian based images](https://github.com/bnkamalesh/golang-dockerfile)
-
 You can create the Docker image for the sample app provided:
 
 ```bash
-$ git clone https://github.com/bnkamalesh/goapp.git
-$ cd goapp
-# Update the internal/configs/configs.go with valid datastore configuration. Or pass nil while calling user service. This would cause the app to panic when calling any API with database interaction
 # Build the Docker image
-$ docker build -t goapp -f docker/Dockerfile .
+$ docker build -t go_app ..
 # and you can run the image with the following command
-$ docker run -p 8080:8080 --rm -ti goapp
+$ docker run -p 9090:9090 go_app
 ```
 
 ## schemas
@@ -247,4 +206,4 @@ You can clone this repository and actually run the application, it'd start an HT
 - `/` GET, the root just returns "Hello world" text response
 - `/-/health` GET, returns a JSON with some basic info. I like using this path to give out the status of the app, its dependencies etc
 - `/users` POST, to create new user
-- `/users/:ID` GET, reads a user from the database given the email id. e.g. http://localhost:8080/users/1
+- `/users/:ID` GET, reads a user from the database given the email id. e.g. http://localhost:9090/users/1
