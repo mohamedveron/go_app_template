@@ -43,9 +43,8 @@ Start the http server on port 9090:
 10. [docker](#docker)
 11. [schemas](#schemas)
 12. [main.go](#maingo)
-13. [Error handling](#error-handling)
-14. [Dependency flow](#dependency-flow)
-16. [Note](#note)
+13. [Dependency flow](#dependency-flow)
+14. [Note](#note)
 
 ## Directory structure
 
