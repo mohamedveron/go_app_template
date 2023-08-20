@@ -112,9 +112,7 @@ Creating a dedicated configs package might seem like an overkill, but it makes a
 
 ## internal/api
 
-The API package is supposed to have all the APIs exposed by the application. A dedicated API package is created to standardize the functionality, when there are different kinds of servers running. e.g. an HTTP & a gRPC server. In such cases, the respective "handler" functions would inturn call `api.<Method name>`. This gives a guarantee that all your APIs behave exactly the same without any accidental inconsistencies across different I/O methods.
-
-But remember, middleware handling is still at the internal/server layer. e.g. access log, authentication etc. Even though this can be brought to the `api` package, it doesn't make much sense because middleware are mostly dependent on the server/handler implementation.
+The API package is supposed to have all the APIs exposed by the application. A dedicated API package is created to standardize the functionality, when there are different kinds of servers running. e.g. an HTTP & a gRPC server. In such cases, the respective "handler" functions would return call `api.<Method name>`. This gives a guarantee that all your APIs behave exactly the same without any accidental inconsistencies across different I/O methods.
 
 ## internal/users
 
