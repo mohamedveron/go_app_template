@@ -1,9 +1,9 @@
 # go_app_template
-This is a basic template to start a new golang application based on clean architecture 
+This is a basic template to start a new golang application based on clean architecture and domain driven design
 
 ## Setup of the service:
 
-Must have golang installed version >= 1.18
+Should have golang installed version >= 1.19
 
 make file consists of 4 steps: generate, test, build, run you can run all of them
 
@@ -44,7 +44,7 @@ Start the http server on port 9090:
 11. [schemas](#schemas)
 12. [main.go](#maingo)
 13. [Dependency flow](#dependency-flow)
-14. [Note](#note)
+14. [Cmd](#cmd)
 
 ## Directory structure
 
@@ -96,11 +96,19 @@ Start the http server on port 9090:
 |____go.mod
 |____go.sum
 |
-|____ciconfig.yml # depends on the CI/CD system you're using. e.g. .travis.yml
 |____README.md
 |____main.go
 |
 ```
+
+##Guideline for api structure:
+1- we have the main spec file here cmd/dsp-server/contracts/dsp-api-specs.yaml
+2- we have a separate directory for all schemas cmd/dsp-server/contracts/schemas, so when u create a new schema u have to create a separate file and add it in cmd/dsp-server/contracts/schemas/_index.yaml.
+3- make sure that u reuse existing schemas before u create a new one.
+4- we have a separate directory for all paths cmd/dsp-server/contracts/resources and make sure u add changes in the related directory like (reporting, accounts, etc..).
+5- all response must follow the same structure, so if u going to return just the id of the created resource u can use the existing resource id schema,
+if u going to return list of items u have to add the list of item inside the data object and reuse meta for pagination attributes.
+6- for new objects u can name the request schema with a request suffix in object name and for response use just the resource name.
 
 ## internal
 
