@@ -82,9 +82,12 @@ Start the http server on port 9090:
 |    |     |____contracts
 |    |     |    |___schemas
 |    |     |    |___resources
+|____proxy
+|    |
+|    |___open_ai.go
+|    |
+|    |
 |    |____main.go
-| 
-|
 |
 |
 |____docker
@@ -144,7 +147,7 @@ P.S: Similar to logger, we made these independent private packages hosted in our
 
 I usually define the logging interface as well as the package, in a private repository (internal to your company e.g. vcs.yourcompany.io/gopkgs/logger), and is used across all services. Logging interface helps you to easily switch between different logging libraries, as all your apps would be using the interface **you** defined (interface segregation principle from SOLID). But here I'm making it part of the application itself as it has fewer chances of going wrong when trying to cater to a larger audience.
 
-## internal/server/http
+## cmd/server/http
 
 All HTTP related configurations and functionalities are kept inside this package. The naming convention followed for filenames, is also straightforward. i.e. all the HTTP handlers of a specific package/domain are grouped under `handlers_<business logic unit name>.go`. The special mention of naming handlers is because, often for decently large web applications (especially when building REST-ful services) you end up with a lot of handlers. I have services with 100+ handlers for individual APIs, so keeping them organized helps.
 
@@ -162,15 +165,13 @@ $ docker run -p 9090:9090 go_app
 
 All the SQL schemas required by the project in this directory. This is not nested inside individual package because it's not consumed by the application at all. Also the fact that, actual consumers of the schema (developers, DB maintainers etc.) are varied. It's better to make it easier for all the audience rather than just developers. Even if you use NoSQL databases, your application would need some sort of schema to function, which can still be maintained inside this.
 
-I've recently started using [sqlc](https://sqlc.dev/) for code generation for all SQL interactions (and love it!). I use [Squirrel](https://github.com/Masterminds/squirrel) whenever I need to dynamically build queries. E.g. when updating a table, you want to update only certain columns based on the input. Also, this is a recommendation from a friend for maintaining SQL migrations, though I've never used it myself, [Goose](https://github.com/pressly/goose).
-
-Even migrations can be maintained in a directory in the root, but it's best to keep the application never be responsible for database setup. i.e. let migrations, index creation etc. be handled outside the scope of the application itself. For instance, it's very easy to create deadlocks with databases if it's part of the application, when you deploy the application in a _horizontally_ scaled model.
+I've recently started using [sqlc](https://sqlc.dev/) for code generation for all SQL interactions (and love it!). I use [Squirrel](https://github.com/Masterminds/squirrel) whenever I need to dynamically build queries. E.g. when updating a table, you want to update only certain columns based on the input.
 
 ## main.go
 
-Finally the `main package`. I prefer putting the `main.go` file outside as shown here. No non-sense, straight up `go run main.go` would start the application (provided the required configurations are available). 'main' is probably going to be the ugliest package where all conventions and separation of concerns are broken, but this is acceptable. The responsibility of main package is one and only one, **get things started**.
+Finally the `main package`. `cmd` directory is for adding multiple commands. This is usually required _when there are multiple modes of interacting with the application_. i.e. HTTP server, CLI etc. In which case each usecase can be initialized and started with subpackages under `cmd`. Even though Go advocates fewer use of packages. 'main' is probably going to be the ugliest package where all conventions and separation of concerns are broken, but this is acceptable. The responsibility of main package is one and only one, **get things started**.
 
-`cmd` directory can be added in the root for adding multiple commands. This is usually required _when there are multiple modes of interacting with the application_. i.e. HTTP server, CLI etc. In which case each usecase can be initialized and started with subpackages under `cmd`. Even though Go advocates fewer use of packages, I would give higher precedence for separation of concerns at a package level to keep things tidy. And even the main.go can be in `cmd/main.go`.
+, I would give higher precedence for separation of concerns at a package level to keep things tidy. That's why main.go in `cmd/main.go`.
 
 
 ## Dependency flow
