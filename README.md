@@ -12,9 +12,6 @@ make file consists of 4 steps: generate, test, build, run you can run all of the
 Run test cases run
 
 ```make test```
-or
-
-```go test -v ./tests```
 
 Start the http server on port 9090:
 
@@ -61,7 +58,6 @@ Start the http server on port 9090:
 |    |
 |    |____users
 |    |    |____store.go
-|    |    |____cache.go
 |    |    |____users.go
 |    |    |____users_test.go
 |    |
@@ -77,17 +73,11 @@ Start the http server on port 9090:
 |    |
 |    |____server
 |         |____http
-|         |    |____web
-|         |    |    |____templates
-|         |    |         |____index.html
 |         |    |____handlers_notes.go
 |         |    |____handlers_users.go
 |         |    |____http.go
 |         |
 |
-|____lib
-|    |____notes
-|         |____notes.go
 |
 |
 |____docker
@@ -101,11 +91,12 @@ Start the http server on port 9090:
 |
 ```
 
-##Guideline for api structure:
-1- we have the main spec file here cmd/dsp-server/contracts/dsp-api-specs.yaml
-2- we have a separate directory for all schemas cmd/dsp-server/contracts/schemas, so when u create a new schema u have to create a separate file and add it in cmd/dsp-server/contracts/schemas/_index.yaml.
+## Guideline for open-api spec file structure:
+
+1- we have the main spec file here cmd/server/contracts/api-specs.yaml
+2- we have a separate directory for all schemas cmd/server/contracts/schemas, so when u create a new schema u have to create a separate file and add it in cmd/server/contracts/schemas/_index.yaml.
 3- make sure that u reuse existing schemas before u create a new one.
-4- we have a separate directory for all paths cmd/dsp-server/contracts/resources and make sure u add changes in the related directory like (reporting, accounts, etc..).
+4- we have a separate directory for all paths cmd/server/contracts/resources and make sure u add changes in the related directory like (users, accounts, etc..).
 5- all response must follow the same structure, so if u going to return just the id of the created resource u can use the existing resource id schema,
 if u going to return list of items u have to add the list of item inside the data object and reuse meta for pagination attributes.
 6- for new objects u can name the request schema with a request suffix in object name and for response use just the resource name.
@@ -134,16 +125,6 @@ There's a `store.go` in this package which is where you write all the direct int
 
 At this point where you're testing individual package's datastore interaction, I'd rather you directly start testing the API. APIs would cover all the layers, API, business logic, datastore interaction etc. These tests can be built and deployed using external API testing frameworks (i.e. independent of your code). So my approach is a hybrid one, unit tests for all possible pure functions, and API test for the rest. And when it comes to API testing, your aim should be to try and "break the application". i.e. don't just cover happy paths. The lazier you are, more pure functions you will have(rather write unit tests than create API tests on yet another tool)!
 
-P.S: I use [VSCode](https://code.visualstudio.com/) and it lets you auto [generate unit tests](https://code.visualstudio.com/docs/languages/go#_test). I'm positive other IDEs also have similar functionality. You could just right-click on the function and choose `Go: Generate unit tests for function`.
-
-<p align="center">
-<img src="https://user-images.githubusercontent.com/1092882/87034896-2be14f80-c206-11ea-8771-edabfffab39d.png" alt="generate unit test" width="384px" height="256px" style="margin-right: 16px" />
-</p>
-
-## internal/notes
-
-Similar to the users package, 'notes' handles all business logic related to 'notes'.
-
 ## internal/pkg
 
 pkg package contains all the packages which are to be consumed across multiple packages within the project. For instance the datastore package will be consumed by both users and notes package. I'm not really particular about the name _pkg_. This might as well be _utils_ or some other generic name of your choice.
@@ -160,18 +141,6 @@ I usually define the logging interface as well as the package, in a private repo
 ## internal/server/http
 
 All HTTP related configurations and functionalities are kept inside this package. The naming convention followed for filenames, is also straightforward. i.e. all the HTTP handlers of a specific package/domain are grouped under `handlers_<business logic unit name>.go`. The special mention of naming handlers is because, often for decently large web applications (especially when building REST-ful services) you end up with a lot of handlers. I have services with 100+ handlers for individual APIs, so keeping them organized helps.
-
-e.g. handlers_users.go. The advantage of naming this way is, it's easier for developers to look at and identify from a list of filenames. e.g. on VS code it looks like this
-
-<p align="center"><img src="https://user-images.githubusercontent.com/1092882/86526182-24d8db00-beae-11ea-9681-0a31b2d67e1b.png" alt="handlers_users.go" width="512px"/></p>
-
-## lib
-
-This name is quite explicit and if you notice, it's outside of the special 'internal' directory. So any exported name or entity within this directory, is meant to be used in external projects.
-
-It might seem redundant to add a sub-directory called 'goapp', the import path would be `github.com/bnkamalesh/goapp/lib/goapp`. Though this is not a mistake, while importing this package, you'd like to use it as follows `goapp.<something>`. So if you directly put it under lib, it'd be `lib.` and that's obviously too generic and you'd have to manually setup aliases every time. Or if you try solving it by having the package name which differ from the direcory name, it's going to be a tussle with your [IDE](https://en.wikipedia.org/wiki/Integrated_development_environment).
-
-Another advantage is, if you have more than one package which you'd like to be made available for external consumption, you create `lib/<other>`. In this case, you reduce the dependencies which are imported to external functions. On the contrary if you put everything inside `lib` or in a single package, you'd be forcing import of all dependencies even when you'd need only a small part of it.
 
 ## docker
 You can create the Docker image for the sample app provided:
