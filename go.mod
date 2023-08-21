@@ -9,8 +9,8 @@ require (
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1
 	github.com/jackc/pgx/v5 v5.4.2
-	github.com/mr-destructive/palm v0.0.0-20230627070112-e2fa79b1d2bb
 	github.com/pkg/errors v0.9.1
+	github.com/sashabaranov/go-openai v1.14.2
 	go.uber.org/zap v1.24.0
 )
 

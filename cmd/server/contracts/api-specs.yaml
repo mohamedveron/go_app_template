@@ -65,6 +65,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /openai/{topic}:
+    get:
+      summary: Returns a Paragraph
+      description: Returns a Paragraph based on a topic
+      operationId: getParagraphByTopic
+      parameters:
+        - name: topic
+          in: path
+          description: topic to search
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: open ai response
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'              
 components:
   schemas:
     User:
