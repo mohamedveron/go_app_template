@@ -1,5 +1,5 @@
 # go_app_template
-This is a basic template to start a new golang application based on clean architecture and domain driven design
+This is a basic template to start a new golang application based on my experience in the last few years trying to follow clean architecture and domain driven design
 
 ## Setup of the service:
 
@@ -71,12 +71,19 @@ Start the http server on port 9090:
 |    |    |____logger
 |    |         |____logger.go
 |    |
+|____cmd
+|    |
 |    |____server
-|         |____http
-|         |    |____handlers_notes.go
-|         |    |____handlers_users.go
-|         |    |____http.go
-|         |
+|    |     |____http
+|    |     |    |____spec.gen.go
+|    |     |    |____user.go
+|    |     |    |____http.go
+|    |     |
+|    |     |____contracts
+|    |     |    |___schemas
+|    |     |    |___resources
+|    |____main.go
+| 
 |
 |
 |
@@ -87,7 +94,6 @@ Start the http server on port 9090:
 |____go.sum
 |
 |____README.md
-|____main.go
 |
 ```
 
