@@ -1,0 +1,25 @@
+get:
+  summary: Returns a User by ID
+  description: Returns a User based on a single ID
+  operationId: findUserByID
+  parameters:
+    - name: id
+      in: path
+      description: ID of User to fetch
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    '200':
+      description: User response
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/User.yaml'
+    default:
+      description: unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/Error.yaml'

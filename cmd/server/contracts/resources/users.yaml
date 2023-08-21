@@ -1,0 +1,24 @@
+post:
+  summary: Creates a new user
+  description: Creates a new user
+  operationId: addUser
+  requestBody:
+    description: User to add to the store
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/NewUser.yaml'
+  responses:
+    '200':
+      description: user response
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/User.yaml'
+    default:
+      description: unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/Error.yaml'

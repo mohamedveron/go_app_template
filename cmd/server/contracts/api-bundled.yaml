@@ -88,14 +88,14 @@ components:
           type: string
           description: Email of the User
     Error:
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: integer
-          format: int32
-          description: Error code
-        message:
-          type: string
-          description: Error message
+      - required:
+          - code
+          - message
+        properties:
+          code:
+            type: integer
+            format: int32
+            description: Error code
+          message:
+            type: string
+            description: Error message

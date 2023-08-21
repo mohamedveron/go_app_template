@@ -1,0 +1,9 @@
+required:
+  - name
+properties:
+  name:
+    type: string
+    description: Name of the user
+  email:
+    type: string
+    description: Email of the User
