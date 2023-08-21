@@ -35,7 +35,7 @@ Start the http server on port 9090:
 6. [pkg package](#internalpkg)
    - 6.1. [datastore](#internalpkgdatastore)
    - 6.2. [logger](#internalpkglogger)
-7. [HTTP server](#internalhttp)
+7. [HTTP server](#cmdserverhttp)
 8. [lib](#lib)
 10. [docker](#docker)
 11. [schemas](#schemas)
@@ -149,7 +149,7 @@ I usually define the logging interface as well as the package, in a private repo
 
 ## cmd/server/http
 
-All HTTP related configurations and functionalities are kept inside this package. The naming convention followed for filenames, is also straightforward. i.e. all the HTTP handlers of a specific package/domain are grouped under `handlers_<business logic unit name>.go`. The special mention of naming handlers is because, often for decently large web applications (especially when building REST-ful services) you end up with a lot of handlers. I have services with 100+ handlers for individual APIs, so keeping them organized helps.
+All HTTP related configurations and functionalities are kept inside this package..
 
 ## docker
 You can create the Docker image for the sample app provided:
