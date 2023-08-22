@@ -42,6 +42,7 @@ Start the http server on port 9090:
 12. [main.go](#maingo)
 13. [Dependency flow](#dependency-flow)
 14. [Cmd](#cmd)
+15. [proxy](#proxy)
 
 ## Directory structure
 
@@ -82,12 +83,14 @@ Start the http server on port 9090:
 |    |     |____contracts
 |    |     |    |___schemas
 |    |     |    |___resources
+|    |____main.go
+|    |
+|    |
 |____proxy
 |    |
 |    |___open_ai.go
 |    |
 |    |
-|    |____main.go
 |
 |
 |____docker
@@ -130,10 +133,6 @@ There's a `store.go` in this package which is where you write all the direct int
 
 `NewService/New` function is created in each package, which initializes and returns the respective package's handler. In case of users package, there's a `Users` struct. The name 'NewService' makes sense in most cases, and just reduces the burden of thinking of a good name for such scenarios. The Users struct here holds all the dependencies required for implementing features provided by users package.
 
-### conclusion
-
-At this point where you're testing individual package's datastore interaction, I'd rather you directly start testing the API. APIs would cover all the layers, API, business logic, datastore interaction etc. These tests can be built and deployed using external API testing frameworks (i.e. independent of your code). So my approach is a hybrid one, unit tests for all possible pure functions, and API test for the rest. And when it comes to API testing, your aim should be to try and "break the application". i.e. don't just cover happy paths. The lazier you are, more pure functions you will have(rather write unit tests than create API tests on yet another tool)!
-
 ## internal/pkg
 
 pkg package contains all the packages which are to be consumed across multiple packages within the project. For instance the datastore package will be consumed by both users and notes package. I'm not really particular about the name _pkg_. This might as well be _utils_ or some other generic name of your choice.
@@ -151,15 +150,8 @@ I usually define the logging interface as well as the package, in a private repo
 
 All HTTP related configurations and functionalities are kept inside this package..
 
-## docker
-You can create the Docker image for the sample app provided:
-
-```bash
-# Build the Docker image
-$ docker build -t go_app ..
-# and you can run the image with the following command
-$ docker run -p 9090:9090 go_app
-```
+## proxy
+This package where we locate all the third parties integrations whatever it is an http client or any other communication protocol.
 
 ## schemas
 
@@ -172,6 +164,20 @@ I've recently started using [sqlc](https://sqlc.dev/) for code generation for al
 Finally the `main package`. `cmd` directory is for adding multiple commands. This is usually required _when there are multiple modes of interacting with the application_. i.e. HTTP server, CLI etc. In which case each usecase can be initialized and started with subpackages under `cmd`. Even though Go advocates fewer use of packages. 'main' is probably going to be the ugliest package where all conventions and separation of concerns are broken, but this is acceptable. The responsibility of main package is one and only one, **get things started**.
 
 , I would give higher precedence for separation of concerns at a package level to keep things tidy. That's why main.go in `cmd/main.go`.
+
+### conclusion
+
+At this point where you're testing individual package's datastore interaction, I'd rather you directly start testing the API. APIs would cover all the layers, API, business logic, datastore interaction etc. These tests can be built and deployed using external API testing frameworks (i.e. independent of your code). So my approach is a hybrid one, unit tests for all possible pure functions, and API test for the rest. And when it comes to API testing, your aim should be to try and "break the application". i.e. don't just cover happy paths. The lazier you are, more pure functions you will have(rather write unit tests than create API tests on yet another tool)!
+
+## docker
+You can create the Docker image for the sample app provided:
+
+```bash
+# Build the Docker image
+$ docker build -t go_app ..
+# and you can run the image with the following command
+$ docker run -p 9090:9090 go_app
+```
 
 
 ## Dependency flow
