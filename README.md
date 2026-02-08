@@ -180,12 +180,6 @@ $ docker run -p 9090:9090 go_app
 ```
 
 
-## Dependency flow
-
-<p align="center">
-<img src="https://user-images.githubusercontent.com/1092882/104085767-f5999100-5277-11eb-808a-5fd9b6776ad6.png" alt="Dependency flow between the layers" width="768px"/>
-</p>
-
 # Note
 
 You can clone this repository and actually run the application, it'd start an HTTP server listening on port 8080 with the following routes available.
