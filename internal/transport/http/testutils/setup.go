@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/mohamedveron/go_app_template/internal/transport/http/middleware"
 	"github.com/stretchr/testify/require"
 )
@@ -30,8 +29,6 @@ type TestServerOptions struct {
 
 // SetupTestEnvironment creates the test environment and returns the components for server creation
 func SetupTestEnvironment(t *testing.T, opts TestServerOptions) (string, *middleware.AuthMiddleware) {
-	gin.SetMode(gin.TestMode)
-
 	// Create or use workspace directory
 	var testDir string
 	var err error

@@ -1,4 +1,4 @@
-package http
+package serverV1
 
 import (
 	"fmt"
@@ -10,6 +10,6 @@ import (
 func (*HTTP) GetParagraphByTopic(w http.ResponseWriter, r *http.Request, topic string) {
 	gpt := proxy.NewOpenAI("token")
 	msg := gpt.GetMessage(topic)
-	fmt.Printf(msg)
+	fmt.Print(msg)
 	w.Write([]byte(msg))
 }

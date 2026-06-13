@@ -1,190 +1,251 @@
 # go_app_template
-This is a basic template to start a new golang application based on my experience in the last few years trying to follow clean architecture and domain driven design
 
-## Setup of the service:
+A community Go application template following clean architecture and domain-driven design principles. The HTTP layer is built around **spec-driven development** — you define the API contract first (OpenAPI), generate the server scaffolding, then implement the business logic.
 
-Should have golang installed version >= 1.19
+## Quick start
 
-make file consists of 4 steps: generate, test, build, run you can run all of them
+Requires Go >= 1.21.
 
-```make all```
-
-Run test cases run
-
-```make test```
-
-Start the http server on port 9090:
-
-```make run```
-
-## Run By Docker
-
+```bash
+make all    # generate + test + build + run
+make test   # run tests only
+make run    # start HTTP server on :9090
 ```
- docker build -t go_app .
- 
- docker run -p 9090:9090 go_app
- 
+
+Docker:
+```bash
+docker build -t go_app .
+docker run -p 9090:9090 go_app
 ```
+
+---
+
 ## Table of contents
 
 1. [Directory structure](#directory-structure)
-2. [Configs package](#internalconfigs)
-3. [API package](#internalapi)
-4. [Users](#internalusers) (would be common for all such business logic units, 'notes' being similar to users) package.
-5. [Testing](#internalusers_test)
-6. [pkg package](#internalpkg)
-   - 6.1. [datastore](#internalpkgdatastore)
-   - 6.2. [logger](#internalpkglogger)
-7. [HTTP server](#cmdserverhttp)
-8. [lib](#lib)
-10. [docker](#docker)
-11. [schemas](#schemas)
-12. [main.go](#maingo)
-13. [Dependency flow](#dependency-flow)
-14. [Cmd](#cmd)
-15. [proxy](#proxy)
+2. [HTTP layer: spec-driven development](#http-layer-spec-driven-development)
+   - [How a request flows](#how-a-request-flows)
+   - [How versioning works](#how-versioning-works)
+   - [Adding a new endpoint](#adding-a-new-endpoint)
+   - [OpenAPI spec conventions](#openapi-spec-conventions)
+3. [internal/configs](#internalconfigs)
+4. [internal/api](#internalapi)
+5. [internal/users](#internalusers)
+6. [internal/pkg](#internalpkg)
+7. [proxy](#proxy)
+8. [docker](#docker)
+
+---
 
 ## Directory structure
 
-```bash
-|
-|____internal
-|    |
-|    |____configs
-|    |    |____configs.go
-|    |
-|    |____api
-|    |    |____notes.go
-|    |    |____users.go
-|    |
-|    |____users
-|    |    |____store.go
-|    |    |____users.go
-|    |    |____users_test.go
-|    |
-|    |____notes
-|    |    |____notes.go
-|    |
-|    |____pkg
-|    |    |____stringutils
-|    |    |____datastore
-|    |    |     |____datastore.go
-|    |    |____logger
-|    |         |____logger.go
-|    |
-|____cmd
-|    |
-|    |____server
-|    |     |____http
-|    |     |    |____spec.gen.go
-|    |     |    |____user.go
-|    |     |    |____http.go
-|    |     |
-|    |     |____contracts
-|    |     |    |___schemas
-|    |     |    |___resources
-|    |____main.go
-|    |
-|    |
-|____proxy
-|    |
-|    |___open_ai.go
-|    |
-|    |
-|
-|
-|____docker
-|    |____Dockerfile # your 'default' dockerfile
-|
-|____go.mod
-|____go.sum
-|
-|____README.md
-|
+```
+.
+├── cmd/
+│   └── main.go                          # entry point — wires deps, starts net/http.Server
+│
+├── api/
+│   └── contracts/
+│       ├── cfg.yaml                     # oapi-codegen config (chi-server: true)
+│       ├── api-specs.yaml               # OpenAPI 3.0 spec — START HERE for new endpoints
+│       ├── resources/                   # per-resource path definitions
+│       └── schemas/                     # reusable schema definitions
+│
+├── internal/
+│   ├── configs/
+│   │   └── configs.go                   # config loading (env vars, defaults)
+│   │
+│   ├── api/
+│   │   └── *.go                         # service-layer façade (shared by HTTP, gRPC, etc.)
+│   │
+│   ├── users/                           # example business-logic unit
+│   │   ├── service.go
+│   │   ├── users.go
+│   │   ├── users_test.go
+│   │   ├── domain/
+│   │   └── persistence/
+│   │
+│   ├── pkg/
+│   │   ├── datastore/                   # postgres + mongo initialisation
+│   │   └── logger/
+│   │
+│   └── transport/
+│       └── http/
+│           ├── server.go                # root chi router — global middleware + version mounts
+│           ├── server_test.go
+│           ├── middleware/
+│           │   ├── auth.go              # Bearer token auth (standard http.Handler)
+│           │   ├── cors.go              # go-chi/cors
+│           │   └── logging.go           # structured slog request logging
+│           ├── testutils/               # shared test helpers
+│           ├── api_server_gen/
+│           │   └── v1/
+│           │       └── spec.gen.go      # GENERATED — do not edit by hand
+│           └── v1/
+│               ├── server.go            # v1 chi sub-router — v1-scoped middleware
+│               ├── user.go              # implements ServerInterface for /users endpoints
+│               └── chat.go             # implements ServerInterface for /openai endpoints
+│
+├── observability/                       # OpenTelemetry setup
+├── proxy/                               # third-party HTTP clients (OpenAI, etc.)
+├── logging/
+├── go.mod
+└── Makefile
 ```
 
-## Guideline for open-api spec file structure:
+---
 
-1- we have the main spec file here cmd/server/contracts/api-specs.yaml
-2- we have a separate directory for all schemas cmd/server/contracts/schemas, so when u create a new schema u have to create a separate file and add it in cmd/server/contracts/schemas/_index.yaml.
-3- make sure that u reuse existing schemas before u create a new one.
-4- we have a separate directory for all paths cmd/server/contracts/resources and make sure u add changes in the related directory like (users, accounts, etc..).
-5- all response must follow the same structure, so if u going to return just the id of the created resource u can use the existing resource id schema,
-if u going to return list of items u have to add the list of item inside the data object and reuse meta for pagination attributes.
-6- for new objects u can name the request schema with a request suffix in object name and for response use just the resource name.
+## HTTP layer: spec-driven development
 
-## internal
+All HTTP APIs in this template follow **spec-driven development**: the OpenAPI spec is the single source of truth. You write the spec first, generate the server interface, then fill in your implementation. The generated code is never edited by hand.
 
-["internal" is a special directory name in Go](https://go.dev/doc/go1.4#internalpackages), wherein any exported name/entity can only be consumed within its immediate parent.
+### How a request flows
+
+```
+Incoming request
+      │
+      ▼
+cmd/main.go
+  net/http.Server { Handler: server.GetRouter() }
+      │
+      ▼
+internal/transport/http/server.go   ← root chi router
+  Middleware (every request):
+    1. chimw.Recoverer          — panic → 500
+    2. otelhttp.NewMiddleware   — OpenTelemetry trace span
+    3. LoggingMiddleware()      — structured slog: method/path/status/duration
+      │
+      ├── GET /health           ← no auth, returns version + supported API versions
+      │
+      └── Mount("/api/v1", ...) ← hands off to the v1 sub-router
+              │
+              ▼
+          internal/transport/http/v1/server.go   ← v1 chi sub-router
+            Middleware (v1 requests only):
+              1. Recoverer
+              2. CorsMiddleware()         — go-chi/cors
+              3. authMiddleware.RequireAuth()   — 401 if no/invalid token
+              │
+              ├── GET  /openai/{topic}
+              ├── POST /users
+              └── GET  /users/{id}
+                        │
+                        ▼
+                  api_server_gen/v1/spec.gen.go   ← GENERATED
+                    Extracts + coerces path/query params (chi.URLParam),
+                    calls into your handler struct
+                        │
+                        ▼
+                  v1/user.go, v1/chat.go   ← your business logic
+                    Implements ServerInterface methods
+```
+
+The full request URL for a v1 endpoint is `/api/v1/users/{id}`. When the request reaches the v1 sub-router via `r.Mount`, the `/api/v1` prefix is already stripped, so the sub-router and generated code only see `/users/{id}`.
+
+### How versioning works
+
+The root server mounts each version as an independent sub-router:
+
+```go
+// internal/transport/http/server.go
+r.Mount("/api/v1", s.v1Server.GetRouter())
+// future: r.Mount("/api/v2", s.v2Server.GetRouter())
+```
+
+Each version is a self-contained chi router with its own middleware stack. This means:
+
+- v1 and v2 can have **different auth schemes, CORS rules, or rate limits**
+- Adding v2 never touches v1 code
+- The `/health` endpoint is intentionally **outside all versions** — it is a global liveness check with no auth
+
+### Adding a new endpoint
+
+Follow these steps every time:
+
+**1. Define the endpoint in the OpenAPI spec**
+
+Edit [api/contracts/api-specs.yaml](api/contracts/api-specs.yaml). Add your path, method, request/response schemas. Follow the schema conventions below.
+
+**2. Regenerate the server code**
+
+```bash
+go generate ./...
+```
+
+This runs `oapi-codegen` using [api/contracts/cfg.yaml](api/contracts/cfg.yaml) (which sets `chi-server: true`) and overwrites [internal/transport/http/api_server_gen/v1/spec.gen.go](internal/transport/http/api_server_gen/v1/spec.gen.go).
+
+**3. Implement the new method**
+
+The compiler will now tell you that your handler struct no longer satisfies `ServerInterface`. Add the method to the appropriate file under [internal/transport/http/v1/](internal/transport/http/v1/) (or create a new file for a new resource group). The generated wrapper already handles parameter extraction — you receive typed values directly.
+
+```go
+// The generated interface (do not edit):
+FindUserByID(w http.ResponseWriter, r *http.Request, id int64)
+
+// Your implementation (in v1/user.go):
+func (h *HTTP) FindUserByID(w http.ResponseWriter, r *http.Request, id int64) {
+    // id is already parsed and typed — focus on business logic
+}
+```
+
+**Never edit `spec.gen.go` directly.** Changes there will be overwritten on the next `go generate`.
+
+### OpenAPI spec conventions
+
+1. The main spec lives at [api/contracts/api-specs.yaml](api/contracts/api-specs.yaml).
+2. Schemas go in [api/contracts/schemas/](api/contracts/schemas/) — one file per resource, indexed via `_index.yaml`. Reuse existing schemas before creating new ones.
+3. Paths go in [api/contracts/resources/](api/contracts/resources/) — organised by resource (users, accounts, etc.).
+4. All list responses wrap items in a `data` object and reuse a `meta` object for pagination attributes.
+5. Name request schemas with a `Request` suffix; name response schemas after the resource itself.
+6. All error responses use the shared `Error` schema (`code` + `message`).
+
+---
 
 ## internal/configs
 
-Creating a dedicated configs package might seem like an overkill, but it makes a lot of things easier. In the example app provided, you see the HTTP configs are hardcoded and returned. Later you decide to change to consume from env variables. All you do is update the configs package. And further down the line, maybe you decide to introduce something like [etcd](https://github.com/etcd-io/etcd), then you define the dependency in `Configs` and update the functions accordingly. This is yet another separation of concern package, to try and keep `main` tidy.
+Centralises all configuration loading. HTTP port, timeouts, and datastore credentials are read here — either from env vars or defaults. Keeping this isolated means you can swap from hardcoded defaults to etcd or AWS Parameter Store without touching any other package.
 
 ## internal/api
 
-The API package is supposed to have all the APIs exposed by the application. A dedicated API package is created to standardize the functionality, when there are different kinds of servers running. e.g. an HTTP & a gRPC server. In such cases, the respective "handler" functions would return call `api.<Method name>`. This gives a guarantee that all your APIs behave exactly the same without any accidental inconsistencies across different I/O methods.
+A service-layer façade that all transports (HTTP, gRPC, CLI) call into. This guarantees consistent behaviour across transport types — no accidental divergence between what the HTTP handler does vs what a CLI command does.
 
 ## internal/users
 
-Users package is where all your actual user related business logic is implemented. e.g. Create a user after cleaning up the input, validation, and then store it inside a persistent datastore.
+An example business-logic unit. The pattern applies to any domain entity (orders, accounts, etc.):
 
-There's a `store.go` in this package which is where you write all the direct interactions with the datastore. There's an interface which is unique to the `users` package. It is introduced to handle dependency injection as well as dependency inversion elegantly. File naming convention for store files is `store_<logical group>.go`. e.g. `store_aggregations.go`. Or simply `store.go` if there's not much code.
-
-`NewService/New` function is created in each package, which initializes and returns the respective package's handler. In case of users package, there's a `Users` struct. The name 'NewService' makes sense in most cases, and just reduces the burden of thinking of a good name for such scenarios. The Users struct here holds all the dependencies required for implementing features provided by users package.
+- `service.go` — the `Users` struct, initialised via `NewService`, holds all dependencies
+- `users.go` — business logic (validation, orchestration)
+- `users_test.go` — unit tests for pure functions; API-level tests cover the full stack
+- `domain/` — domain types
+- `persistence/` — datastore interactions; the `Store` interface enables dependency inversion and makes unit testing without a real DB possible
 
 ## internal/pkg
 
-pkg package contains all the packages which are to be consumed across multiple packages within the project. For instance the datastore package will be consumed by both users and notes package. I'm not really particular about the name _pkg_. This might as well be _utils_ or some other generic name of your choice.
+Packages shared across multiple business-logic units (not specific to any one domain). Includes:
 
-### internal/pkg/datastore
-
-The datastore package initializes `pgxpool.Pool` and returns a new instance. I'm using Postgres as the datastore in this sample app.
-P.S: Similar to logger, we made these independent private packages hosted in our [VCS](https://en.wikipedia.org/wiki/Version_control). Shoutout to [Gitlab](https://gitlab.com/)!
-
-### internal/pkg/logger
-
-I usually define the logging interface as well as the package, in a private repository (internal to your company e.g. vcs.yourcompany.io/gopkgs/logger), and is used across all services. Logging interface helps you to easily switch between different logging libraries, as all your apps would be using the interface **you** defined (interface segregation principle from SOLID). But here I'm making it part of the application itself as it has fewer chances of going wrong when trying to cater to a larger audience.
-
-## cmd/server/http
-
-All HTTP related configurations and functionalities are kept inside this package..
+- **datastore** — initialises `pgxpool.Pool` (Postgres) and the Mongo driver
+- **logger** — wraps `go.uber.org/zap`; define the interface here so you can swap logging libraries without touching business logic
 
 ## proxy
-This package where we locate all the third parties integrations whatever it is an http client or any other communication protocol.
 
-## schemas
-
-All the SQL schemas required by the project in this directory. This is not nested inside individual package because it's not consumed by the application at all. Also the fact that, actual consumers of the schema (developers, DB maintainers etc.) are varied. It's better to make it easier for all the audience rather than just developers. Even if you use NoSQL databases, your application would need some sort of schema to function, which can still be maintained inside this.
-
-I've recently started using [sqlc](https://sqlc.dev/) for code generation for all SQL interactions (and love it!). I use [Squirrel](https://github.com/Masterminds/squirrel) whenever I need to dynamically build queries. E.g. when updating a table, you want to update only certain columns based on the input.
-
-## main.go
-
-Finally the `main package`. `cmd` directory is for adding multiple commands. This is usually required _when there are multiple modes of interacting with the application_. i.e. HTTP server, CLI etc. In which case each usecase can be initialized and started with subpackages under `cmd`. Even though Go advocates fewer use of packages. 'main' is probably going to be the ugliest package where all conventions and separation of concerns are broken, but this is acceptable. The responsibility of main package is one and only one, **get things started**.
-
-, I would give higher precedence for separation of concerns at a package level to keep things tidy. That's why main.go in `cmd/main.go`.
-
-### conclusion
-
-At this point where you're testing individual package's datastore interaction, I'd rather you directly start testing the API. APIs would cover all the layers, API, business logic, datastore interaction etc. These tests can be built and deployed using external API testing frameworks (i.e. independent of your code). So my approach is a hybrid one, unit tests for all possible pure functions, and API test for the rest. And when it comes to API testing, your aim should be to try and "break the application". i.e. don't just cover happy paths. The lazier you are, more pure functions you will have(rather write unit tests than create API tests on yet another tool)!
+All third-party integrations — HTTP clients, SDKs, other protocols. Each integration lives in its own file. Currently includes an OpenAI client.
 
 ## docker
-You can create the Docker image for the sample app provided:
 
 ```bash
-# Build the Docker image
-$ docker build -t go_app ..
-# and you can run the image with the following command
-$ docker run -p 9090:9090 go_app
+docker build -t go_app .
+docker run -p 9090:9090 go_app
 ```
 
+The Dockerfile produces a minimal image using a multi-stage build.
 
-# Note
+---
 
-You can clone this repository and actually run the application, it'd start an HTTP server listening on port 8080 with the following routes available.
+## Available routes
 
-- `/` GET, the root just returns "Hello world" text response
-- `/-/health` GET, returns a JSON with some basic info. I like using this path to give out the status of the app, its dependencies etc
-- `/users` POST, to create new user
-- `/users/:ID` GET, reads a user from the database given the email id. e.g. http://localhost:9090/users/1
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/health` | None | Liveness check, returns version info |
+| `POST` | `/api/v1/users` | Required | Create a new user |
+| `GET` | `/api/v1/users/{id}` | Required | Fetch a user by ID |
+| `GET` | `/api/v1/openai/{topic}` | Required | Generate a paragraph on a topic via OpenAI |

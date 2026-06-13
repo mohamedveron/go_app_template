@@ -8,7 +8,6 @@ import (
 
 	"github.com/mohamedveron/go_app_template/internal/pkg/datastore"
 	"github.com/mohamedveron/go_app_template/internal/pkg/logger"
-	"github.com/mohamedveron/go_app_template/internal/transport/http/v1"
 )
 
 // Configs struct handles all dependencies required for handling configurations
@@ -31,8 +30,15 @@ type Configs struct {
 	}
 }
 
-// HTTP returns the configuration required for HTTP package
-func (cfg *Configs) HTTP() (*http.Config, error) {
+// HTTPConfig holds HTTP server configuration
+type HTTPConfig struct {
+	Port         int
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+}
+
+// HTTP returns the configuration required for the HTTP server
+func (cfg *Configs) HTTP() (*HTTPConfig, error) {
 	envPort := os.Getenv("PORT")
 	if envPort == "" {
 		envPort = "9090"
@@ -43,11 +49,10 @@ func (cfg *Configs) HTTP() (*http.Config, error) {
 		logger.Error("wrong port provided", envPort)
 	}
 
-	return &http.Config{
+	return &HTTPConfig{
 		Port:         port,
 		ReadTimeout:  time.Second * 5,
 		WriteTimeout: time.Second * 5,
-		//DialTimeout:       time.Second * 3,
 	}, nil
 }
 
