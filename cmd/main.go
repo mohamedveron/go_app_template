@@ -6,9 +6,12 @@ import (
 	"time"
 
 	"github.com/mohamedveron/go_app_template/internal/configs"
+	"github.com/mohamedveron/go_app_template/internal/pkg/datastore"
 	"github.com/mohamedveron/go_app_template/internal/pkg/logger"
-	httpmw "github.com/mohamedveron/go_app_template/internal/transport/http/middleware"
 	httpserver "github.com/mohamedveron/go_app_template/internal/transport/http"
+	httpmw "github.com/mohamedveron/go_app_template/internal/transport/http/middleware"
+	"github.com/mohamedveron/go_app_template/internal/users"
+	"github.com/mohamedveron/go_app_template/internal/users/persistence"
 )
 
 func main() {
@@ -30,7 +33,32 @@ func main() {
 		return
 	}
 
-	server := httpserver.NewServer(authMiddleware, "", uint16(httpCfg.Port), cfg.Version)
+	dsCfg, err := cfg.Datastore()
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("%+v", err))
+		return
+	}
+
+	pgPool, err := datastore.NewPostgresService(dsCfg)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("%+v", err))
+		return
+	}
+	defer pgPool.Close()
+
+	usersPersistence, err := persistence.NewUserPostgresPersistence(pgPool)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("%+v", err))
+		return
+	}
+
+	usersService, err := users.NewService(usersPersistence)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("%+v", err))
+		return
+	}
+
+	server := httpserver.NewServer(authMiddleware, usersService, "", uint16(httpCfg.Port), cfg.Version)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", httpCfg.Port),

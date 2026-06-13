@@ -6,6 +6,20 @@ import (
 	"time"
 )
 
+// Cursor holds the pagination state for cursor-based listing.
+// After is the exclusive lower bound on createdAt — pass the createdAt of the
+// last item from the previous page to get the next page.
+type Cursor struct {
+	After *time.Time
+	Limit uint
+}
+
+// UserPage is the result of a cursor-based list query.
+type UserPage struct {
+	Users      []*User
+	NextCursor *time.Time // nil when there are no more pages
+}
+
 // User holds all data required to represent a user
 type User struct {
 	FirstName string     `json:"firstName,omitempty"`

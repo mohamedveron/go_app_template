@@ -7,6 +7,12 @@ import (
 	"github.com/mohamedveron/go_app_template/internal/users/domain"
 )
 
+// ListUsers returns a page of users sorted by createdAt ascending.
+// Pass a zero-value Cursor for the first page; use UserPage.NextCursor for subsequent pages.
+func (us *UsersService) ListUsers(ctx context.Context, cursor domain.Cursor) (*domain.UserPage, error) {
+	return us.persistence.List(ctx, cursor)
+}
+
 // CreateUser creates a new user
 func (us *UsersService) CreateUser(ctx context.Context, u *domain.User) (*domain.User, error) {
 	u.SetDefaults()

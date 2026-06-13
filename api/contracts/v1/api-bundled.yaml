@@ -1,0 +1,126 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Swagger Userstore
+  description: A sample API that uses a User as an example to demonstrate features in the OpenAPI 3.0 specification
+  termsOfService: 'https://swagger.io/terms/'
+  contact:
+    name: Go App API Team
+    email: apiteam@swagger.io
+    url: 'https://swagger.io'
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+  - url: 'https://Users.swagger.io/api'
+paths:
+  /users:
+    post:
+      summary: Creates a new user
+      description: Creates a new user
+      operationId: addUser
+      requestBody:
+        description: User to add to the store
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '200':
+          description: user response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/users/{id}':
+    get:
+      summary: Returns a User by ID
+      description: Returns a User based on a single ID
+      operationId: findUserByID
+      parameters:
+        - name: id
+          in: path
+          description: ID of User to fetch
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/openai/{topic}':
+    get:
+      summary: Returns a Paragraph
+      description: Returns a Paragraph based on a topic
+      operationId: getParagraphByTopic
+      parameters:
+        - name: topic
+          in: path
+          description: topic to search
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: open ai response
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    User:
+      allOf:
+        - $ref: '#/components/schemas/NewUser'
+        - required:
+            - id
+          properties:
+            id:
+              type: integer
+              format: int64
+              description: Unique id of the User
+    NewUser:
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the user
+        email:
+          type: string
+          description: Email of the User
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: Error code
+        message:
+          type: string
+          description: Error message
