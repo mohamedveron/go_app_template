@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/mohamedveron/go_app_template/logging"
+	"github.com/mohamedveron/go_app_template/internal/logging"
 	"go.opentelemetry.io/otel/trace"
 )
 
