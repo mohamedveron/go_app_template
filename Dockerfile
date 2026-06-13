@@ -1,27 +1,27 @@
-FROM golang:1.20-alpine as builder
+FROM golang:1.26-alpine as builder
 
-RUN apk add --no-cache git
-RUN apk add --update make
-RUN apk add --no-cache openssh
+RUN apk add --no-cache git make openssh
 
-# Move to working directory /app
 WORKDIR /app
 
-# Copy the code into the container
-COPY . .
+COPY go.mod go.sum ./
+RUN go mod download
 
-# Toggle CGO on your app requirement
-RUN CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static"' -o /app/appbin ./cmd/main.go
+COPY ./internal ./internal
+COPY ./cmd ./cmd
+
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags="-s -w -extldflags \"-static\" -X main.version=${VERSION}" \
+    -o /app/appbin ./cmd/main.go
 
 FROM alpine:latest
 LABEL MAINTAINER Author mohamed abdelmohaimen
-# Add new user 'appuser'. App should be run without root privileges as a security measure
+
 RUN adduser --home "/appuser" --disabled-password appuser \
     --gecos "appuser,-,-,-"
 USER appuser
 
-COPY --from=builder /app/internal/server/http/web /home/appuser/app/web
-COPY --from=builder /app/appbin /home/appuser/app
+COPY --from=builder /app/appbin /home/appuser/app/appbin
 
 WORKDIR /home/appuser/app
 

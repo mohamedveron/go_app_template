@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mohamedveron/go_app_template/proxy"
+	"github.com/mohamedveron/go_app_template/internal/proxy"
 )
 
 func (*HTTP) GetParagraphByTopic(w http.ResponseWriter, r *http.Request, topic string) {

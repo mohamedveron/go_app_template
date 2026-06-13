@@ -18,7 +18,8 @@ generate-api-specs:
 build:  $(OUTPUT)
 	CGO_ENABLED=0 GOOS=linux go build -o bin/app \
 		-ldflags "-X main.version=$(VERSION)" \
-		-gcflags "-trimpath $(GOPATH)/src"
+		-gcflags "-trimpath $(GOPATH)/src" \
+		./cmd/main.go
 
 test: generate
 	@echo :: run tests
