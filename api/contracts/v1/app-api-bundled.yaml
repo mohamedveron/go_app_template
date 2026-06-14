@@ -15,6 +15,40 @@ servers:
   - url: https://Users.swagger.io/api
 paths:
   /users:
+    get:
+      summary: List users with cursor-based pagination
+      description: Returns a page of users ordered by createdAt ascending
+      operationId: listUsers
+      parameters:
+        - name: after
+          in: query
+          description: Cursor — createdAt of the last item from the previous page (RFC 3339)
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          description: Maximum number of users to return (default 20, max 100)
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: paginated user list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPage'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     post:
       summary: Creates a new user
       description: Creates a new user
@@ -93,25 +127,46 @@ paths:
 components:
   schemas:
     User:
-      allOf:
-        - $ref: '#/components/schemas/NewUser'
-        - required:
-            - id
-          properties:
-            id:
-              type: integer
-              format: int64
-              description: Unique id of the User
-    NewUser:
-      required:
-        - name
       properties:
-        name:
+        firstName:
           type: string
-          description: Name of the user
+        lastName:
+          type: string
+        mobile:
+          type: string
         email:
           type: string
-          description: Email of the User
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    NewUser:
+      required:
+        - firstName
+        - email
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        mobile:
+          type: string
+        email:
+          type: string
+    UserPage:
+      required:
+        - users
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        nextCursor:
+          type: string
+          format: date-time
+          description: Pass as `after` on the next request to get the next page; absent when no more pages exist
     Error:
       required:
         - code

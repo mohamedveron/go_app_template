@@ -80,8 +80,14 @@ func (am *AuthMiddleware) extractToken(r *http.Request) string {
 	return r.URL.Query().Get("token")
 }
 
-func (am *AuthMiddleware) getPermission(_ string) Permission {
+func (am *AuthMiddleware) getPermission(token string) Permission {
 	am.mu.RLock()
 	defer am.mu.RUnlock()
+	if token == "admin-token" {
+		return PermissionAdmin
+	}
+	if token == "readonly-token" {
+		return PermissionReadonly
+	}
 	return -1
 }

@@ -1,9 +1,16 @@
 required:
-  - name
+  - firstName
+  - email
 properties:
-  name:
+  firstName:
     type: string
-    description: Name of the user
+    description: First name of the user
+  lastName:
+    type: string
+    description: Last name of the user
+  mobile:
+    type: string
+    description: Mobile number of the user
   email:
     type: string
-    description: Email of the User
+    description: Email of the user
