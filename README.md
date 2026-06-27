@@ -2,6 +2,9 @@
 
 A community Go application template following clean architecture and domain-driven design principles. The HTTP layer is built around **spec-driven development** — you define the API contract first (OpenAPI), generate the server scaffolding, then implement the business logic.
 
+## agent-harness
+the harness should stay lean and opinionated on project-specific rules (cursor invariants, domain vocabulary, shutdown order, no DB mocks),
+
 ## Quick start
 
 Requires Go >= 1.21.
