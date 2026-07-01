@@ -21,7 +21,7 @@ Naming rules for Go code in `go_app_template`. Go has strong conventions of its 
   - `service.go` — the service struct and constructor.
   - `<entity>.go` — the entity's business methods (e.g. `users.go`).
   - `<entity>.go` in `domain/` — the domain type (e.g. `user.go`).
-  - `persistence.go` — persistence interface definition.
+  - `persistence.go` — persistence interface definition (lives in the **consumer** package, e.g. `internal/users/persistence.go`, not in `internal/users/persistence/`).
   - `<entity>_<driver>.go` — persistence implementation (e.g. `user_postgres.go`).
   - `errors.go` — typed error values.
 
@@ -49,16 +49,22 @@ type writeResponseWriter struct {
 
 ### Interfaces
 
-- **PascalCase**, no `I` prefix, no `Impl` suffix on implementors.
+- **PascalCase** for exported, **camelCase** for unexported. No `I` prefix, no `Impl` suffix on implementors.
+- Define interfaces in the **consumer** package, not the implementation package. The consumer owns the abstraction; the implementor satisfies it implicitly.
 - Add an interface only when there is a real abstraction need — to allow swapping a concrete implementation (e.g. swapping Postgres for MongoDB in tests).
 
 ```go
-// Good
-type UsersPersistence interface {
+// Good — defined in package users (the consumer), not in package persistence (the implementor)
+// package users
+type usersPersistence interface {
     Create(ctx context.Context, u *domain.User) error
     ReadByEmail(ctx context.Context, email string) (*domain.User, error)
     List(ctx context.Context, cursor domain.Cursor) (*domain.UserPage, error)
 }
+
+// Bad — defined in the implementation package
+// package persistence
+// type UsersPersistence interface { ... }
 
 // Bad — IUsersPersistence, UsersPersistenceInterface
 ```
