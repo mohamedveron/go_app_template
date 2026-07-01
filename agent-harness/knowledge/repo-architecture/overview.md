@@ -41,7 +41,7 @@ For the domain vocabulary, see the [Context Map](../domain/context-map.md) and t
 Core principles:
 
 - **Spec-driven API.** Write the OpenAPI spec first, run `make generate-api-specs` to regenerate `spec.gen.go`, then implement the `ServerInterface` methods. Never hand-edit the generated file.
-- **Interface-driven wiring.** `UsersService` depends on `persistence.UsersPersistence` (an interface). The concrete `UserPostgresPersistence` or `UserMongoPersistence` is injected by `cmd/main.go`.
+- **Interface-driven wiring.** `UsersService` depends on `usersPersistence` (an unexported interface defined in `internal/users/persistence.go`). The concrete `UserPostgresPersistence` or `UserMongoPersistence` is injected by `cmd/main.go`.
 - **Single composition root.** `cmd/main.go` is the only place that constructs concrete types and wires dependencies. Nothing outside `cmd/` calls `New*` constructors that mix layers.
 - **Single binary.** `bin/app` (built via `make build`) is the only artifact.
 
@@ -60,7 +60,7 @@ go_app_template/
 │   │   ├── domain/
 │   │   │   └── user.go                  # User, UserPage, Cursor types; Validate, Sanitize, SetDefaults
 │   │   └── persistence/
-│   │       ├── persistence.go           # UsersPersistence interface
+│   │   ├── persistence.go               # usersPersistence interface (consumer-side)
 │   │       ├── user_postgres.go         # UserPostgresPersistence (pgxpool + squirrel)
 │   │       └── user_mongo.go            # UserMongoPersistence (stub)
 │   │

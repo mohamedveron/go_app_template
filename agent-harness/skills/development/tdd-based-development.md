@@ -101,7 +101,7 @@ Implementation details are everything behind the public API: unexported helpers,
 
 ### When to Use a Fake Persistence Layer
 
-The `persistence.UsersPersistence` interface is the main seam in this service. Use a fake (in-memory) implementation in `users.UsersService` tests to avoid requiring a database:
+The `usersPersistence` interface (defined in `internal/users/persistence.go`) is the main seam in this service. Use a fake (in-memory) implementation in `users.UsersService` tests to avoid requiring a database:
 
 ```go
 type fakePersistence struct {

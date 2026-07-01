@@ -79,7 +79,7 @@ Rules:
 ## Step 5 — Add Persistence Method (if needed)
 
 If the service method requires a new database query, add it to:
-1. `internal/users/persistence/persistence.go` — add the method to the `UsersPersistence` interface.
+1. `internal/users/persistence.go` — add the method to the `usersPersistence` interface.
 2. `internal/users/persistence/user_postgres.go` — implement it on `UserPostgresPersistence`.
 3. `internal/users/persistence/user_mongo.go` — add a stub that returns `errors.New("not implemented")`.
 

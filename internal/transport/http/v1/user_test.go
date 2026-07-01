@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// fakePersistence is an in-memory implementation of persistence.UsersPersistence.
+// fakePersistence is an in-memory implementation of users.usersPersistence.
 type fakePersistence struct {
 	users  []*domain.User
 	forceErr error

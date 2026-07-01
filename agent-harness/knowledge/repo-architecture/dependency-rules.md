@@ -51,7 +51,7 @@ Rows import from columns. ✓ = allowed. ✗ = forbidden.
 Key rules in words:
 
 1. **`cmd/` is the composition root.** It constructs all top-level objects — Postgres pool, auth middleware, persistence, service, and HTTP server — and is the only entry point that wires them together.
-2. **`users` owns interfaces, not implementations.** The `UsersPersistence` interface lives in `internal/users/persistence/persistence.go`. Concrete implementations (`UserPostgresPersistence`, `UserMongoPersistence`) live in the same sub-package; `cmd/` injects them.
+2. **`users` owns interfaces, not implementations.** The `usersPersistence` interface lives in `internal/users/persistence.go` (consumer-side, package `users`). Concrete implementations (`UserPostgresPersistence`, `UserMongoPersistence`) live in `internal/users/persistence/`; `cmd/` injects them.
 3. **`users/domain` is a pure leaf.** `User`, `UserPage`, `Cursor` and their validation methods have no internal imports.
 4. **`users/persistence` is the only layer that imports `pkg/datastore`.** `pgxpool.Pool`, `squirrel`, and `mongo.Client` must not leak into `users`, `cmd/`, or `transport/http`.
 5. **`transport/http/v1` does not import `users/persistence` directly.** Handlers talk to `*users.UsersService`, not to the DB layer.
@@ -65,7 +65,7 @@ Key rules in words:
 
 Top-level construction happens in `cmd/main.go`. When you add a new component:
 
-1. Define its interface in the relevant domain package (e.g. `internal/users/persistence/persistence.go`).
+1. Define its interface in the **consumer** package (e.g. `internal/users/persistence.go` for the `users` package).
 2. Implement it in the appropriate sub-package (e.g. `internal/users/persistence/user_postgres.go`).
 3. Construct it in `cmd/main.go`, inject its dependencies from already-constructed peers.
 4. Update the import matrix above.
@@ -96,7 +96,7 @@ The swap test: *if this library were replaced, would the change ripple through m
 | Domain types | `<entity>.go` in `domain/` | `internal/users/domain/user.go` |
 | Domain service | `service.go` | `internal/users/service.go` |
 | Domain business logic | `<entity>.go` co-located with service | `internal/users/users.go` |
-| Persistence interface | `persistence.go` | `internal/users/persistence/persistence.go` |
+| Persistence interface | `persistence.go` | `internal/users/persistence.go` (package `users`) |
 | Persistence implementation | `<entity>_<driver>.go` | `internal/users/persistence/user_postgres.go` |
 | HTTP handlers | `<entity>.go` in `v1/` | `internal/transport/http/v1/user.go` |
 | Middleware | `<concern>.go` in `middleware/` | `internal/transport/http/middleware/auth.go` |
