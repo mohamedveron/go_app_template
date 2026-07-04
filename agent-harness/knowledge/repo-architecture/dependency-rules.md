@@ -11,7 +11,7 @@ For the broader layout, see [overview.md](./overview.md).
 - **Entry point (`cmd/main.go`)** — the process root. Constructs config, database pool, auth middleware, persistence, service, and HTTP server; wires them together; starts listening.
 - **Users domain (`internal/users/`)** — the core business logic layer. Owns the `UsersService` struct, methods (`CreateUser`, `ListUsers`, `ReadByEmail`), and the `UsersPersistence` interface. Does **not** own the database driver or HTTP logic directly.
   - **`internal/users/domain/`** — pure domain types: `User`, `UserPage`, `Cursor`. No external dependencies.
-  - **`internal/users/persistence/`** — interface definition + PostgreSQL and MongoDB implementations. Imports `pgx` and `squirrel`; isolated here so a storage swap touches only this sub-package.
+  - **`internal/users/persistence/`** — PostgreSQL and MongoDB implementations. Imports `pgx` and `squirrel`; isolated here so a storage swap touches only this sub-package.
 - **Configuration (`internal/configs/`)** — reads env vars, returns typed config structs. May import `internal/pkg/datastore` (for `datastore.Config`) and `internal/pkg/logger`.
 - **Datastore (`internal/pkg/datastore/`)** — infrastructure factories: `NewPostgresService` (pgxpool), `NewMongoService` (mongo). Only `internal/users/persistence/` and `cmd/` may import this.
 - **Logger (`internal/pkg/logger/`)** — global zap sugared logger. May be imported by any package.

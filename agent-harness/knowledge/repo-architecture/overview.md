@@ -21,7 +21,7 @@ For the domain vocabulary, see the [Context Map](../domain/context-map.md) and t
 - **`cmd/`** — The process entry point. Constructs config, database pool, auth middleware, persistence, and service; wires them into the HTTP server; starts `net/http.Server`. Currently a single `main.go` using `package main`.
 - **`internal/users/`** — Core domain package. Owns the `UsersService` struct, business logic (`CreateUser`, `ListUsers`, `ReadByEmail`), and domain types. Sub-packages:
   - **`internal/users/domain/`** — Domain types: `User`, `UserPage`, `Cursor`. No external dependencies.
-  - **`internal/users/persistence/`** — `UsersPersistence` interface + PostgreSQL and MongoDB implementations. The only layer that imports `pgx` / `mongo-driver`.
+  - **`internal/users/persistence/`** — PostgreSQL and MongoDB implementations. The only layer that imports `pgx` / `mongo-driver`.
 - **`internal/transport/http/`** — HTTP transport layer.
   - **`internal/transport/http/server.go`** — Root chi router; global middleware (recovery, OTEL tracing, request logging); mounts `/health` and `/api/v1`.
   - **`internal/transport/http/v1/`** — V1 sub-router (`V1Server`), auth/CORS middleware, and handler implementations (`HTTP` struct).
@@ -59,8 +59,8 @@ go_app_template/
 │   │   ├── users_test.go                # Unit tests for users service
 │   │   ├── domain/
 │   │   │   └── user.go                  # User, UserPage, Cursor types; Validate, Sanitize, SetDefaults
+│   │   ├── persistence.go               # usersPersistence interface (consumer-side, package users)
 │   │   └── persistence/
-│   │   ├── persistence.go               # usersPersistence interface (consumer-side)
 │   │       ├── user_postgres.go         # UserPostgresPersistence (pgxpool + squirrel)
 │   │       └── user_mongo.go            # UserMongoPersistence (stub)
 │   │
